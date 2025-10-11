@@ -36,4 +36,12 @@ public class UserTask
     public DateTime? CompletedAt { get; set; }
     
     public string? RejectionReason { get; set; }
+    
+    public DateTime? ActualStartDate { get; set; }
+    
+    public DateTime? ActualEndDate { get; set; }
+    
+    public ICollection<Tag> Tags { get; set; } = new List<Tag>();
+    
+    public ICollection<TaskHistory> History { get; set; } = new List<TaskHistory>();
 }

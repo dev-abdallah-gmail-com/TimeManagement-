@@ -59,6 +59,8 @@ builder.Services.AddAuthorization();
 // Register application services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ITagService, TagService>();
 
 // Configure CORS
 builder.Services.AddCors(options =>

@@ -12,6 +12,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     }
 
     public DbSet<UserTask> Tasks { get; set; }
+    public DbSet<Tag> Tags { get; set; }
+    public DbSet<TaskHistory> TaskHistories { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -28,5 +30,22 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .WithMany()
             .HasForeignKey(t => t.AssignedTo)
             .OnDelete(DeleteBehavior.SetNull);
+
+        // Configure many-to-many relationship between UserTask and Tag
+        builder.Entity<UserTask>()
+            .HasMany(t => t.Tags)
+            .WithMany(tag => tag.Tasks);
+
+        builder.Entity<TaskHistory>()
+            .HasOne(h => h.Task)
+            .WithMany(t => t.History)
+            .HasForeignKey(h => h.TaskId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<TaskHistory>()
+            .HasOne(h => h.PerformedByUser)
+            .WithMany()
+            .HasForeignKey(h => h.PerformedBy)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

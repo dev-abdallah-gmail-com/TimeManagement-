@@ -18,4 +18,7 @@ public class TaskResponseDto
     public DateTime? UpdatedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
     public string? RejectionReason { get; set; }
+    public DateTime? ActualStartDate { get; set; }
+    public DateTime? ActualEndDate { get; set; }
+    public List<TagDto> Tags { get; set; } = new List<TagDto>();
 }

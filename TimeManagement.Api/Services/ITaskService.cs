@@ -11,7 +11,11 @@ public interface ITaskService
     Task<List<TaskResponseDto>> GetAssignedTasksAsync(string userId);
     Task<TaskResponseDto?> UpdateTaskAsync(int taskId, UpdateTaskDto taskDto, string userId);
     Task<bool> DeleteTaskAsync(int taskId, string userId);
-    Task<TaskResponseDto?> AssignTaskAsync(int taskId, string assigneeEmail, string userId);
+    Task<TaskResponseDto?> AssignTaskAsync(int taskId, string? assigneeEmail, string userId);
     Task<TaskResponseDto?> AcceptRejectTaskAsync(int taskId, AcceptRejectTaskDto dto, string userId);
     Task<TaskResponseDto?> UpdateTaskStatusAsync(int taskId, Models.TaskStatus status, string userId);
+    Task<TaskResponseDto?> CompleteTaskAsync(int taskId, CompleteTaskDto dto, string userId);
+    Task<TaskResponseDto?> ApproveRejectTaskAsync(int taskId, ApproveRejectTaskDto dto, string userId);
+    Task<List<TaskHistoryDto>> GetTaskHistoryAsync(int taskId, string userId);
+    Task<List<TaskResponseDto>> GetAllTasksAsync(string userId);
 }

@@ -6,6 +6,8 @@ public enum TaskStatus
     Assigned = 1,
     Accepted = 2,
     InProgress = 3,
-    Completed = 4,
-    Rejected = 5
+    PendingApproval = 4,
+    Completed = 5,
+    Approved = 6,
+    Rejected = 7
 }
