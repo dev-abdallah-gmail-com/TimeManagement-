@@ -14,4 +14,6 @@ public class UpdateTaskDto
     public DateTime? ScheduledStartDate { get; set; }
     
     public DateTime? ScheduledEndDate { get; set; }
+    
+    public List<int> TagIds { get; set; } = new List<int>();
 }

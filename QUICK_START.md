@@ -35,7 +35,18 @@ curl -X POST http://localhost:5154/api/auth/register \
 
 **Response:** You'll receive a JWT token. Save it!
 
-### Step 4: Create a Task
+### Step 4: Create Tags (Optional but Recommended)
+```bash
+curl -X POST http://localhost:5154/api/tags \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{
+    "name": "Bug",
+    "color": "#e74c3c"
+  }'
+```
+
+### Step 5: Create a Task
 ```bash
 curl -X POST http://localhost:5154/api/tasks \
   -H "Content-Type: application/json" \
@@ -44,13 +55,16 @@ curl -X POST http://localhost:5154/api/tasks \
     "title": "My First Task",
     "description": "Task description",
     "scheduledStartDate": "2025-10-15T09:00:00Z",
-    "scheduledEndDate": "2025-10-20T17:00:00Z"
+    "scheduledEndDate": "2025-10-20T17:00:00Z",
+    "tagIds": [1],
+    "assigneeEmail": "user@example.com"
   }'
 ```
 
-### Step 5: View Your Tasks
+### Step 6: View Your Tasks
 ```bash
-curl -X GET http://localhost:5154/api/tasks/my-tasks \
+# Get all tasks (calendar view)
+curl -X GET http://localhost:5154/api/tasks/all \
   -H "Authorization: Bearer YOUR_TOKEN_HERE"
 ```
 
@@ -155,26 +169,54 @@ Passwords must have:
 - At least 1 lowercase letter
 - At least 1 digit
 
-## 🎯 Task Workflow
+## 🎯 Task Workflow (Updated)
 
+### Standard Workflow:
 ```
 1. Create Task (Status: Pending)
+   - Can optionally assign during creation
+   - Can add tags for categorization
+   
 2. Assign to User (Status: Assigned)
+   - Creator can assign to anyone
+   - User can self-assign
+   - Can be unassigned (back to Pending)
+   
 3. User Accepts (Status: Accepted)
+   - Alternative: User Rejects (Status: Rejected, unassigned)
+   
 4. User Works on It (Status: InProgress)
-5. User Completes (Status: Completed)
+   - Requires scheduledStartDate and scheduledEndDate
+   
+5. User Completes with Actual Time (Status: PendingApproval)
+   - Must provide actualStartDate and actualEndDate
+   
+6. Owner Approves (Status: Approved) - FINAL
+   - Alternative: Owner Rejects (back to Assigned)
 ```
 
-Alternative: User can reject at step 3 (Status: Rejected)
+### New Features:
+- **Tags**: Color-coded labels for tasks
+- **History**: Full audit trail of all actions
+- **Actual Time**: Track real time spent
+- **Approval**: Owner reviews completed work
+- **Calendar View**: Get all tasks with time frames
+- **Business Rules**: InProgress requires time frame
 
 ## ⚡ Quick Tips
 
 1. **Keep your token safe**: It expires in 7 days
 2. **Check task ownership**: You can only see tasks you created or are assigned to
-3. **Modify freely**: Until a task is completed, you can modify it
-4. **Completed tasks are final**: Cannot modify or delete
-5. **Only creator can assign**: Task assignment is creator's privilege
+3. **Modify freely**: Until a task is approved/completed, you can modify it
+4. **Approved tasks are final**: Cannot modify or delete
+5. **Creator or user can assign**: Task creator or user themselves can assign tasks
 6. **Only assignee can accept/reject**: Acceptance is assignee's choice
+7. **Time frames required**: Must set scheduledStartDate/EndDate before InProgress
+8. **Actual time required**: Must provide actual time when completing
+9. **Owner approves**: Task creator reviews and approves/rejects completion
+10. **Use tags**: Color-coded tags help organize tasks visually
+11. **Check history**: View full audit trail of task changes
+12. **Calendar view**: Use /api/tasks/all for unified view
 
 ## 🐛 Troubleshooting
 
@@ -201,11 +243,83 @@ dotnet run
 - Check Authorization header is present
 - Ensure token is valid
 
+## 🆕 New Features Quick Reference
+
+### Admin User Management
+```bash
+# List all users (admin only)
+curl -X GET http://localhost:5154/api/admin/users \
+  -H "Authorization: Bearer ADMIN_TOKEN"
+```
+
+### Tags
+```bash
+# Create tag
+curl -X POST http://localhost:5154/api/tags \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Urgent", "color": "#ff0000"}'
+
+# List tags
+curl -X GET http://localhost:5154/api/tags \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Task History
+```bash
+# View complete history
+curl -X GET http://localhost:5154/api/tasks/1/history \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Complete Task with Actual Time
+```bash
+curl -X POST http://localhost:5154/api/tasks/1/complete \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "actualStartDate": "2025-10-15T09:15:00Z",
+    "actualEndDate": "2025-10-15T16:30:00Z"
+  }'
+```
+
+### Approve/Reject Task
+```bash
+# Approve
+curl -X POST http://localhost:5154/api/tasks/1/approve-reject \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"approve": true}'
+
+# Reject
+curl -X POST http://localhost:5154/api/tasks/1/approve-reject \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"approve": false, "rejectionReason": "Needs more work"}'
+```
+
+### Unassign Task
+```bash
+curl -X POST http://localhost:5154/api/tasks/1/assign \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### Calendar View
+```bash
+# Get all tasks (created or assigned to you)
+curl -X GET http://localhost:5154/api/tasks/all \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
 ## 📚 More Information
 
 - **Detailed Documentation**: See `README.md`
+- **New Features Guide**: See `ENHANCEMENTS.md`
+- **Test Scenarios**: See `API_TEST_SCENARIOS.md`
+- **Implementation Details**: See `IMPLEMENTATION_DETAILS.md`
 - **Architecture Details**: See `ARCHITECTURE.md`
-- **Implementation Summary**: See `IMPLEMENTATION_SUMMARY.md`
 
 ## 🎉 You're Ready!
 

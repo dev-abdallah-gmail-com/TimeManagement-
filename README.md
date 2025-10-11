@@ -5,12 +5,19 @@ A role-based task management system built with ASP.NET Core 9.0 that enables use
 ## Features
 
 - **Role-Based Authentication**: Support for Admin and User roles with JWT authentication
+- **Admin User Management**: Admins can view and manage all users
 - **Task Management**: Create, read, update, and delete tasks
-- **Task Assignment**: Users can assign tasks to other users
+- **Task Assignment**: Users can assign tasks to themselves or others, with support for unassignment
+- **Task Tags**: Organize tasks with colored tags for visual categorization
+- **Task History**: Full audit trail of all task changes and actions
 - **Acceptance Workflow**: Assignees must accept or reject tasks before working on them
-- **Task Scheduling**: Schedule tasks with start and end dates
-- **Status Management**: Track task status (Pending, Assigned, Accepted, InProgress, Completed, Rejected)
-- **Full Control**: Users can modify tasks at any time if they haven't been completed
+- **Task Scheduling**: Schedule tasks with start and end dates (time frames)
+- **Actual Time Tracking**: Track actual time spent on tasks before completion
+- **Approval Workflow**: Task owners review and approve/reject completed tasks
+- **Business Rules**: Tasks require time frames before setting to InProgress status
+- **Status Management**: Track task status (Pending, Assigned, Accepted, InProgress, PendingApproval, Approved, Rejected)
+- **Calendar View Support**: Get all tasks for unified calendar-style views
+- **Interfering Tasks**: Tasks can have overlapping time frames
 - **API Documentation**: Integrated Swagger/OpenAPI documentation
 
 ## Technology Stack

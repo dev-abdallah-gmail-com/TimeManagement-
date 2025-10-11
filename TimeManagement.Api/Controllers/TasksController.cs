@@ -126,9 +126,53 @@ public class TasksController : ControllerBase
 
         if (result == null)
         {
-            return BadRequest(new { message = "Failed to update task status. Task not found or you don't have permission." });
+            return BadRequest(new { message = "Failed to update task status. Task not found, you don't have permission, or business rules prevented the status change (e.g., InProgress requires time frame)." });
         }
 
         return Ok(result);
+    }
+
+    [HttpPost("{id}/complete")]
+    public async Task<ActionResult<TaskResponseDto>> CompleteTask(int id, [FromBody] CompleteTaskDto dto)
+    {
+        var userId = GetUserId();
+        var result = await _taskService.CompleteTaskAsync(id, dto, userId);
+
+        if (result == null)
+        {
+            return BadRequest(new { message = "Failed to complete task. Task not found, you're not the assignee, or task is not in correct status." });
+        }
+
+        return Ok(result);
+    }
+
+    [HttpPost("{id}/approve-reject")]
+    public async Task<ActionResult<TaskResponseDto>> ApproveRejectTask(int id, [FromBody] ApproveRejectTaskDto dto)
+    {
+        var userId = GetUserId();
+        var result = await _taskService.ApproveRejectTaskAsync(id, dto, userId);
+
+        if (result == null)
+        {
+            return BadRequest(new { message = "Failed to approve/reject task. Task not found, you're not the owner, or task is not pending approval." });
+        }
+
+        return Ok(result);
+    }
+
+    [HttpGet("{id}/history")]
+    public async Task<ActionResult<List<TaskHistoryDto>>> GetTaskHistory(int id)
+    {
+        var userId = GetUserId();
+        var history = await _taskService.GetTaskHistoryAsync(id, userId);
+        return Ok(history);
+    }
+
+    [HttpGet("all")]
+    public async Task<ActionResult<List<TaskResponseDto>>> GetAllTasks()
+    {
+        var userId = GetUserId();
+        var tasks = await _taskService.GetAllTasksAsync(userId);
+        return Ok(tasks);
     }
 }
