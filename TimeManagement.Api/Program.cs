@@ -14,7 +14,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configure Database
+// Configure Database0
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -88,6 +88,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Add a root endpoint to avoid404 on '/'
+app.MapGet("/", () => Results.Ok("TimeManagement API is running. Visit /swagger for API docs."));
 
 // Initialize database and seed roles
 using (var scope = app.Services.CreateScope())
