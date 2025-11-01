@@ -1,0 +1,40 @@
+@page "/tasks/{id:int}"
+@inject HttpClient Http
+@using System.Net.Http.Json
+
+<h3>Task Detail</h3>
+
+@if (task == null)
+{
+ <p><em>Loading...</em></p>
+}
+else
+{
+ <dl class="row">
+ <dt class="col-sm-3">Title</dt>
+ <dd class="col-sm-9">@task.Title</dd>
+ <dt class="col-sm-3">Description</dt>
+ <dd class="col-sm-9">@task.Description</dd>
+ <dt class="col-sm-3">Status</dt>
+ <dd class="col-sm-9">@task.Status</dd>
+ </dl>
+}
+
+@code {
+ [Parameter]
+ public int id { get; set; }
+
+ private TaskDetailDto? task;
+ protected override async Task OnInitializedAsync()
+ {
+ task = await Http.GetFromJsonAsync<TaskDetailDto>($"api/tasks/{id}");
+ }
+
+ class TaskDetailDto
+ {
+ public int Id { get; set; }
+ public string Title { get; set; } = string.Empty;
+ public string Description { get; set; } = string.Empty;
+ public string Status { get; set; } = string.Empty;
+ }
+}

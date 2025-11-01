@@ -1,0 +1,121 @@
+@page "/tasks/edit/{Id:int}"
+@page "/tasks/create"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@using System.Net.Http.Json
+@using Microsoft.AspNetCore.Components
+@using System.Linq
+
+<h3>@(IsNew ? "Create Task" : "Edit Task")</h3>
+
+<div class="mb-3">
+ <label class="form-label">Title</label>
+ <input @bind="model.Title" class="form-control" />
+</div>
+<div class="mb-3">
+ <label class="form-label">Description</label>
+ <textarea @bind="model.Description" class="form-control"></textarea>
+</div>
+<div class="mb-3">
+ <label class="form-label">Scheduled Start (YYYY-MM-DDTHH:MM)</label>
+ <input type="text" @bind="model.ScheduledStartDateString" class="form-control" placeholder="2025-10-15T09:00" />
+</div>
+<div class="mb-3">
+ <label class="form-label">Scheduled End (YYYY-MM-DDTHH:MM)</label>
+ <input type="text" @bind="model.ScheduledEndDateString" class="form-control" placeholder="2025-10-20T17:00" />
+</div>
+<div class="mb-3">
+ <label class="form-label">Tags (comma separated)</label>
+ <input @bind="tagsText" class="form-control" />
+</div>
+<button class="btn btn-primary" @onclick="Save">Save</button>
+<button class="btn btn-secondary ms-2" @onclick="Cancel">Cancel</button>
+
+@code {
+ [Parameter]
+ public int Id { get; set; }
+
+ private bool IsNew => Id ==0;
+ private EditModel model = new EditModel();
+ private string tagsText = string.Empty;
+
+ protected override async Task OnInitializedAsync()
+ {
+ if (!IsNew)
+ {
+ var t = await Http.GetFromJsonAsync<TaskDto>($"api/tasks/{Id}");
+ if (t != null)
+ {
+ model.Title = t.Title;
+ model.Description = t.Description;
+ if (t.ScheduledStartDate.HasValue) model.ScheduledStartDateString = t.ScheduledStartDate.Value.ToString("yyyy-MM-ddTHH:mm");
+ if (t.ScheduledEndDate.HasValue) model.ScheduledEndDateString = t.ScheduledEndDate.Value.ToString("yyyy-MM-ddTHH:mm");
+ tagsText = string.Join(",", t.Tags?.Select(x => x.Name) ?? Array.Empty<string>());
+ }
+ }
+ }
+
+ private async Task Save()
+ {
+ DateTime? start = null;
+ DateTime? end = null;
+ if (!string.IsNullOrWhiteSpace(model.ScheduledStartDateString) && DateTime.TryParse(model.ScheduledStartDateString, out var s)) start = s;
+ if (!string.IsNullOrWhiteSpace(model.ScheduledEndDateString) && DateTime.TryParse(model.ScheduledEndDateString, out var e)) end = e;
+
+ var dto = new
+ {
+ Title = model.Title,
+ Description = model.Description,
+ ScheduledStartDate = start,
+ ScheduledEndDate = end
+ };
+
+ HttpResponseMessage response;
+ if (IsNew)
+ {
+ response = await Http.PostAsJsonAsync("api/tasks", dto);
+ }
+ else
+ {
+ response = await Http.PutAsJsonAsync($"api/tasks/{Id}", dto);
+ }
+
+ if (response.IsSuccessStatusCode)
+ {
+ Navigation.NavigateTo("/tasks");
+ }
+ else
+ {
+ // handle error
+ }
+ }
+
+ private void Cancel()
+ {
+ Navigation.NavigateTo("/tasks");
+ }
+
+ class EditModel
+ {
+ public string Title { get; set; } = string.Empty;
+ public string Description { get; set; } = string.Empty;
+ public string ScheduledStartDateString { get; set; } = string.Empty;
+ public string ScheduledEndDateString { get; set; } = string.Empty;
+ }
+
+ class TaskDto
+ {
+ public int Id { get; set; }
+ public string Title { get; set; } = string.Empty;
+ public string Description { get; set; } = string.Empty;
+ public DateTime? ScheduledStartDate { get; set; }
+ public DateTime? ScheduledEndDate { get; set; }
+ public List<TagDto>? Tags { get; set; }
+ }
+
+ class TagDto
+ {
+ public int Id { get; set; }
+ public string Name { get; set; } = string.Empty;
+ }
+}

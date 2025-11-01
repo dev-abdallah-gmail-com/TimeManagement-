@@ -1,0 +1,74 @@
+@page "/tasks"
+@inject HttpClient Http
+@using System.Net.Http.Json
+
+<PageTitle>Tasks</PageTitle>
+
+<h3>Tasks</h3>
+
+<button class="btn btn-primary mb-2" @onclick="LoadTasks">Refresh</button>
+
+@if (tasks == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Creator</th>
+                <th>Assignee</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var t in tasks)
+            {
+                <tr>
+                    <td><a href="/tasks/@t.Id">@t.Title</a></td>
+                    <td>@t.Status.ToString()</td>
+                    <td>@t.CreatorEmail</td>
+                    <td>@t.AssigneeEmail</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<TaskDto>? tasks;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTasks();
+    }
+
+    private async Task LoadTasks()
+    {
+        tasks = await Http.GetFromJsonAsync<List<TaskDto>>("api/tasks");
+    }
+
+    class TaskDto
+    {
+        public int Id { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public TaskStatus Status { get; set; } = TaskStatus.Pending;
+        public string CreatorEmail { get; set; } = string.Empty;
+        public string? AssigneeEmail { get; set; }
+    }
+
+    // Local enum mirrors server-side Models.TaskStatus so numeric values deserialize correctly
+    enum TaskStatus
+    {
+        Pending = 0,
+        Assigned = 1,
+        Accepted = 2,
+        InProgress = 3,
+        PendingApproval = 4,
+        Completed = 5,
+        Approved = 6,
+        Rejected = 7
+    }
+}

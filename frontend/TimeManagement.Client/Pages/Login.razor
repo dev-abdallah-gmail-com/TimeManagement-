@@ -1,0 +1,72 @@
+@page "/login"
+@inject HttpClient Http
+@inject TimeManagement.Client.Services.CustomAuthStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+@using System.Net.Http.Json
+
+<h3>Login</h3>
+
+<div class="mb-3">
+    <label class="form-label">Email</label>
+    <input @bind="model.Email" class="form-control" />
+</div>
+<div class="mb-3">
+    <label class="form-label">Password</label>
+    <input type="password" @bind="model.Password" class="form-control" />
+</div>
+<button class="btn btn-primary" @onclick="Submit">Login</button>
+
+@if (!string.IsNullOrEmpty(error))
+{
+    <div class="alert alert-danger mt-2">@error</div>
+}
+
+@code {
+    private LoginModel model = new LoginModel();
+    private string? error;
+
+    private async Task Submit()
+    {
+        error = null;
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/auth/login", model);
+            if (!response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                // Show server-provided error when available
+                error = !string.IsNullOrWhiteSpace(content)
+                ? $"Login failed: {(int)response.StatusCode} {response.ReasonPhrase}. {content}"
+                : $"Login failed: {(int)response.StatusCode} {response.ReasonPhrase}.";
+                return;
+            }
+
+            var auth = await response.Content.ReadFromJsonAsync<AuthResponse>();
+            if (auth == null || string.IsNullOrWhiteSpace(auth.Token))
+            {
+                error = "Unexpected response from server.";
+                return;
+            }
+
+            await AuthStateProvider.NotifyUserAuthentication(auth.Token);
+
+            Navigation.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            // Surface exception message to the UI instead of letting Blazor show the fatal overlay
+            error = ex.Message;
+        }
+    }
+
+    class LoginModel
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+
+    class AuthResponse
+    {
+        public string Token { get; set; } = string.Empty;
+    }
+}

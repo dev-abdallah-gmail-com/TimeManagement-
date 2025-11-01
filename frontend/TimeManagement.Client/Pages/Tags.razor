@@ -1,0 +1,34 @@
+@page "/tags"
+@inject HttpClient Http
+@using System.Net.Http.Json
+
+<h3>Tags</h3>
+
+@if (tags == null)
+{
+ <p><em>Loading...</em></p>
+}
+else
+{
+ <ul class="list-group">
+ @foreach (var tag in tags)
+ {
+ <li class="list-group-item">@tag.Name (@tag.Color)</li>
+ }
+ </ul>
+}
+
+@code {
+ private List<TagDto>? tags;
+ protected override async Task OnInitializedAsync()
+ {
+ tags = await Http.GetFromJsonAsync<List<TagDto>>("api/tags");
+ }
+
+ class TagDto
+ {
+ public int Id { get; set; }
+ public string Name { get; set; } = string.Empty;
+ public string Color { get; set; } = string.Empty;
+ }
+}

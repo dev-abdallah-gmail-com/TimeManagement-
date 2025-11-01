@@ -1,0 +1,56 @@
+@page "/register"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@using System.Net.Http.Json
+
+<h3>Register</h3>
+
+<div class="mb-3">
+    <label class="form-label">First Name</label>
+    <input @bind="model.FirstName" class="form-control" />
+</div>
+<div class="mb-3">
+    <label class="form-label">Last Name</label>
+    <input @bind="model.LastName" class="form-control" />
+</div>
+<div class="mb-3">
+    <label class="form-label">Email</label>
+    <input @bind="model.Email" class="form-control" />
+</div>
+<div class="mb-3">
+    <label class="form-label">Password</label>
+    <input type="password" @bind="model.Password" class="form-control" />
+</div>
+<button class="btn btn-primary" @onclick="Submit">Register</button>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-info mt-2">@message</div>
+}
+
+@code {
+    private RegisterModel model = new RegisterModel();
+    private string? message;
+
+    private async Task Submit()
+    {
+        var response = await Http.PostAsJsonAsync("api/auth/register", model);
+        if (response.IsSuccessStatusCode)
+        {
+            message = "Registration successful. Please login.";
+            Navigation.NavigateTo("/login");
+        }
+        else
+        {
+            message = "Registration failed.";
+        }
+    }
+
+    class RegisterModel
+    {
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}

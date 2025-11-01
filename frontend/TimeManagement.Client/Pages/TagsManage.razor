@@ -1,0 +1,72 @@
+@page "/tags/manage"
+@inject HttpClient Http
+@using System.Net.Http.Json
+
+<h3>Manage Tags</h3>
+
+<div class="mb-3 row">
+ <div class="col-sm-8">
+ <input @bind="newTagName" class="form-control" placeholder="Tag name" />
+ </div>
+ <div class="col-sm-4">
+ <button class="btn btn-primary" @onclick="AddTag">Add Tag</button>
+ </div>
+</div>
+
+@if (tags == null)
+{
+ <p><em>Loading...</em></p>
+}
+else
+{
+ <table class="table">
+ <thead><tr><th>Name</th><th>Color</th><th></th></tr></thead>
+ <tbody>
+ @foreach (var t in tags)
+ {
+ <tr>
+ <td>@t.Name</td>
+ <td>@t.Color</td>
+ <td><button class="btn btn-danger btn-sm" @onclick="() => DeleteTag(t.Id)">Delete</button></td>
+ </tr>
+ }
+ </tbody>
+ </table>
+}
+
+@code {
+ private List<TagDto>? tags;
+ private string newTagName = string.Empty;
+
+ protected override async Task OnInitializedAsync()
+ {
+ await Load();
+ }
+
+ private async Task Load()
+ {
+ tags = await Http.GetFromJsonAsync<List<TagDto>>("api/tags");
+ }
+
+ private async Task AddTag()
+ {
+ var dto = new { Name = newTagName, Color = "#cccccc" };
+ var res = await Http.PostAsJsonAsync("api/tags", dto);
+ if (res.IsSuccessStatusCode)
+ {
+ newTagName = string.Empty;
+ await Load();
+ }
+ }
+
+ private async Task DeleteTag(int id)
+ {
+ var res = await Http.DeleteAsync($"api/tags/{id}");
+ if (res.IsSuccessStatusCode)
+ {
+ await Load();
+ }
+ }
+
+ class TagDto { public int Id { get; set; } public string Name { get; set; } = string.Empty; public string Color { get; set; } = string.Empty; }
+}
