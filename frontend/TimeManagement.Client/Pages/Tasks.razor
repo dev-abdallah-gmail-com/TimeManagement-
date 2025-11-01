@@ -8,6 +8,11 @@
 
 <button class="btn btn-primary mb-2" @onclick="LoadTasks">Refresh</button>
 
+@if (!string.IsNullOrEmpty(loadError))
+{
+    <div class="alert alert-danger">@loadError</div>
+}
+
 @if (tasks == null)
 {
     <p><em>Loading...</em></p>
@@ -39,6 +44,7 @@ else
 
 @code {
     private List<TaskDto>? tasks;
+    private string? loadError;
 
     protected override async Task OnInitializedAsync()
     {
@@ -47,7 +53,18 @@ else
 
     private async Task LoadTasks()
     {
-        tasks = await Http.GetFromJsonAsync<List<TaskDto>>("api/tasks");
+        try
+        {
+            // Call the controller action that returns all tasks
+            tasks = await Http.GetFromJsonAsync<List<TaskDto>>("api/tasks/all");
+            loadError = null;
+        }
+        catch (HttpRequestException ex)
+        {
+            // Avoid unhandled exception during render; show a friendly message
+            loadError = $"Failed to load tasks: {ex.Message}";
+            tasks = new List<TaskDto>();
+        }
     }
 
     class TaskDto

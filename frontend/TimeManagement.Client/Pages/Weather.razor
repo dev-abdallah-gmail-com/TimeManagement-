@@ -1,11 +1,17 @@
 ﻿@page "/weather"
 @inject HttpClient Http
+@inject NavigationManager NavManager
 
 <PageTitle>Weather</PageTitle>
 
 <h1>Weather</h1>
 
 <p>This component demonstrates fetching data from the server.</p>
+
+@if (!string.IsNullOrEmpty(loadError))
+{
+    <div class="alert alert-danger">@loadError</div>
+}
 
 @if (forecasts == null)
 {
@@ -38,10 +44,22 @@ else
 
 @code {
     private WeatherForecast[]? forecasts;
+    private string? loadError;
 
     protected override async Task OnInitializedAsync()
     {
-        forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json");
+        try
+        {
+            // Ensure we request the sample-data from the client app origin (NavigationManager.BaseUri)
+            var uri = new Uri(NavManager.BaseUri + "sample-data/weather.json");
+            forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>(uri);
+            loadError = null;
+        }
+        catch (HttpRequestException ex)
+        {
+            loadError = $"Failed to load weather data: {ex.Message}";
+            forecasts = Array.Empty<WeatherForecast>();
+        }
     }
 
     public class WeatherForecast
