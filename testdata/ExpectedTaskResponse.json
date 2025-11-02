@@ -1,0 +1,23 @@
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef0123456789",
+  "title": "Prepare sprint demo",
+  "description": "Finalize slides and demo app",
+  "dueDate": "2025-11-07T15:00:00Z",
+  "priority": "High",
+  "tags": [
+    {
+      "id": "t1",
+      "name": "work"
+    },
+    {
+      "id": "t2",
+      "name": "demo"
+    },
+    {
+      "id": "t3",
+      "name": "frontend"
+    }
+  ],
+  "createdAt": "2025-11-01T09:30:00Z",
+  "updatedAt": "2025-11-01T09:30:00Z"
+}

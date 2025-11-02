@@ -1,5 +1,6 @@
 @page "/tags/manage"
-@inject HttpClient Http
+@using TimeManagement.Client.Services
+@inject IApiService Api
 @using System.Net.Http.Json
 
 <h3>Manage Tags</h3>
@@ -45,28 +46,42 @@ else
 
  private async Task Load()
  {
- tags = await Http.GetFromJsonAsync<List<TagDto>>("api/tags");
+ try
+ {
+ tags = await Api.GetAllTagsAsync();
+ }
+ catch
+ {
+ tags = new List<TagDto>();
+ }
  }
 
  private async Task AddTag()
  {
- var dto = new { Name = newTagName, Color = "#cccccc" };
- var res = await Http.PostAsJsonAsync("api/tags", dto);
- if (res.IsSuccessStatusCode)
+ try
+ {
+ var dto = new CreateTagModel { Name = newTagName, Color = "#cccccc" };
+ var res = await Api.CreateTagAsync(dto);
+ if (res != null)
  {
  newTagName = string.Empty;
  await Load();
  }
  }
+ catch
+ {
+ }
+ }
 
  private async Task DeleteTag(int id)
  {
- var res = await Http.DeleteAsync($"api/tags/{id}");
- if (res.IsSuccessStatusCode)
+ try
  {
- await Load();
+ var ok = await Api.DeleteTagAsync(id);
+ if (ok) await Load();
+ }
+ catch
+ {
  }
  }
-
- class TagDto { public int Id { get; set; } public string Name { get; set; } = string.Empty; public string Color { get; set; } = string.Empty; }
 }

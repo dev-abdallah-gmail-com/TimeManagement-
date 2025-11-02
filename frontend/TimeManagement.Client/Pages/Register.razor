@@ -1,5 +1,6 @@
 @page "/register"
-@inject HttpClient Http
+@using TimeManagement.Client.Services
+@inject IApiService Api
 @inject NavigationManager Navigation
 @using System.Net.Http.Json
 
@@ -34,23 +35,22 @@
 
     private async Task Submit()
     {
-        var response = await Http.PostAsJsonAsync("api/auth/register", model);
-        if (response.IsSuccessStatusCode)
+        try
         {
-            message = "Registration successful. Please login.";
-            Navigation.NavigateTo("/login");
+            var auth = await Api.RegisterAsync(model);
+            if (auth != null)
+            {
+                message = "Registration successful. Please login.";
+                Navigation.NavigateTo("/login");
+            }
+            else
+            {
+                message = "Registration failed.";
+            }
         }
-        else
+        catch
         {
             message = "Registration failed.";
         }
-    }
-
-    class RegisterModel
-    {
-        public string FirstName { get; set; } = string.Empty;
-        public string LastName { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
     }
 }

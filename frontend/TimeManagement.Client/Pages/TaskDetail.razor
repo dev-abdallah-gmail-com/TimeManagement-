@@ -1,5 +1,6 @@
 @page "/tasks/{id:int}"
-@inject HttpClient Http
+@using TimeManagement.Client.Services
+@inject IApiService Api
 @using System.Net.Http.Json
 
 <h3>Task Detail</h3>
@@ -27,7 +28,24 @@ else
  private TaskDetailDto? task;
  protected override async Task OnInitializedAsync()
  {
- task = await Http.GetFromJsonAsync<TaskDetailDto>($"api/tasks/{id}");
+ try
+ {
+ var t = await Api.GetTaskAsync(id);
+ if (t != null)
+ {
+ task = new TaskDetailDto
+ {
+ Id = t.Id,
+ Title = t.Title,
+ Description = t.Description ?? string.Empty,
+ Status = t.Status.ToString()
+ };
+ }
+ }
+ catch
+ {
+ // ignore errors
+ }
  }
 
  class TaskDetailDto

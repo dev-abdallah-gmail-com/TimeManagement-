@@ -1,0 +1,109 @@
+@page "/admin/users"
+@using Microsoft.AspNetCore.Components.Authorization
+@using TimeManagement.Client.Services
+@inject TimeManagement.Client.Services.IApiService Api
+@inject AuthenticationStateProvider AuthProvider
+
+<h3>Users Management</h3>
+
+@if (!isAuthorized)
+{
+    <p><em>Access denied. Admins only.</em></p>
+}
+else if (loading)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Name</th>
+                <th>Roles</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var u in users)
+            {
+                <tr>
+                    <td>@u.Email</td>
+                    <td>@(u.FirstName) @(u.LastName)</td>
+                    <td>@string.Join(", ", u.Roles)</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteUser(u.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<TimeManagement.Client.Services.UserDto> users = new();
+    private bool loading = true;
+    private bool isAuthorized = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await AuthProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+        if (!user.Identity?.IsAuthenticated ?? false)
+        {
+            isAuthorized = false;
+            loading = false;
+            return;
+        }
+
+        isAuthorized = user.IsInRole("Admin");
+        if (!isAuthorized)
+        {
+            loading = false;
+            return;
+        }
+
+        try
+        {
+            users = await Api.GetAllUsersAsync();
+        }
+        catch (Exception ex)
+        {
+            // ignore errors for now
+            users = new();
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task DeleteUser(string id)
+    {
+        if (!await JsConfirm($"Delete user {id}?")) return;
+        try
+        {
+            var ok = await Api.DeleteUserAsync(id);
+            if (ok)
+            {
+                users.RemoveAll(u => u.Id == id);
+                StateHasChanged();
+            }
+            else
+            {
+                await JsAlert("Failed to delete user.");
+            }
+        }
+        catch
+        {
+            await JsAlert("Failed to delete user.");
+        }
+    }
+
+    // simple JS interop for confirm/alert
+    [Inject]
+    private IJSRuntime JS { get; set; } = default!;
+    private async Task<bool> JsConfirm(string message) => await JS.InvokeAsync<bool>("confirm", message);
+    private async Task JsAlert(string message) => await JS.InvokeVoidAsync("alert", message);
+}

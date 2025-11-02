@@ -1,11 +1,17 @@
 @page "/tasks"
-@inject HttpClient Http
+@using TimeManagement.Client.Services
+@inject IApiService Api
 @using System.Net.Http.Json
 
 <PageTitle>Tasks</PageTitle>
 
 <h3>Tasks</h3>
 
+<div class="mb-3">
+    <label class="form-label">New task title</label>
+    <input @bind="newTitle" class="form-control" />
+</div>
+<button class="btn btn-success mb-2 me-2" @onclick="AddTask">Add task</button>
 <button class="btn btn-primary mb-2" @onclick="LoadTasks">Refresh</button>
 
 @if (!string.IsNullOrEmpty(loadError))
@@ -45,6 +51,7 @@ else
 @code {
     private List<TaskDto>? tasks;
     private string? loadError;
+    private string newTitle = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -55,15 +62,47 @@ else
     {
         try
         {
-            // Call the controller action that returns all tasks
-            tasks = await Http.GetFromJsonAsync<List<TaskDto>>("api/tasks/all");
+            // Call the API service
+            var list = await Api.GetAllTasksAsync();
+            tasks = list.Select(t => new TaskDto
+            {
+                Id = t.Id,
+                Title = t.Title,
+                Status = (TaskStatus)t.Status,
+                CreatorEmail = t.CreatorEmail,
+                AssigneeEmail = t.AssigneeEmail
+            }).ToList();
             loadError = null;
         }
-        catch (HttpRequestException ex)
+        catch (Exception ex)
         {
             // Avoid unhandled exception during render; show a friendly message
             loadError = $"Failed to load tasks: {ex.Message}";
             tasks = new List<TaskDto>();
+        }
+    }
+
+    private async Task AddTask()
+    {
+        if (string.IsNullOrWhiteSpace(newTitle)) return;
+
+        try
+        {
+            var create = new CreateTaskModel { Title = newTitle };
+            var created = await Api.CreateTaskAsync(create);
+            if (created != null)
+            {
+                newTitle = string.Empty;
+                await LoadTasks();
+            }
+            else
+            {
+                loadError = "Failed to create task";
+            }
+        }
+        catch (Exception ex)
+        {
+            loadError = $"Failed to create task: {ex.Message}";
         }
     }
 

@@ -1,5 +1,6 @@
 @page "/tags"
-@inject HttpClient Http
+@using TimeManagement.Client.Services
+@inject IApiService Api
 @using System.Net.Http.Json
 
 <h3>Tags</h3>
@@ -22,13 +23,14 @@ else
  private List<TagDto>? tags;
  protected override async Task OnInitializedAsync()
  {
- tags = await Http.GetFromJsonAsync<List<TagDto>>("api/tags");
- }
-
- class TagDto
+ try
  {
- public int Id { get; set; }
- public string Name { get; set; } = string.Empty;
- public string Color { get; set; } = string.Empty;
+ tags = await Api.GetAllTagsAsync();
+ }
+ catch (Exception ex)
+ {
+ // show empty list on error
+ tags = new List<TagDto>();
+ }
  }
 }
